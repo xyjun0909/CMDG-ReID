@@ -1,7 +1,6 @@
 __pycache__/
 *.pth
 *.jpg
-*.png
 data/
 output/
 .vscode/
