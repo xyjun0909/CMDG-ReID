@@ -41,7 +41,7 @@ class cuhk_sysu(ImageDataset):
         super(cuhk_sysu, self).__init__(train, query, gallery, **kwargs)
 
     def process_dir(self):
-        json_path = osp.join(self.dataset_dir, "Qwen2_cuhksysu.json")
+        json_path = "./datasets/captions/cuhksysu.json"
         data = []
         with open(json_path, 'r', encoding='utf-8') as file:
           json_data = json.load(file)
@@ -58,17 +58,3 @@ class cuhk_sysu(ImageDataset):
             data.append((img_path, pid, camid,'cuhk_sysu',captions))
         return data
 
-    # def process_dir(self, dir_path):
-    #     img_paths = glob.glob(osp.join(dir_path, '*.png'))
-    #     # pattern = re.compile(r'p([-\d]+)_s(\d)')
-    #     pattern = re.compile(r'p(\d+)_n\d+_s\d+_hard\d+')
-    #     data = []
-    #     for img_path in img_paths:
-    #         match = pattern.search(img_path)
-    #         pid = int(match.group(1))
-    #         pid = int(pid)-1
-    #         self.train_pids.add(int(pid))
-    #         pid = self.dataset_name + "_" + str(pid)
-    #         camid = self.dataset_name + "_0"
-    #         data.append((img_path, pid, camid,'cuhk_sysu'))
-    #     return data

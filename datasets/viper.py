@@ -42,32 +42,8 @@ class VIPeR(ImageDataset):
         self.root = root
         self.dataset_dir = osp.join(self.root, self.dataset_dir)
 
-        # self.cam_a_dir = osp.join(self.dataset_dir, 'cam_a')
-        # self.cam_b_dir = osp.join(self.dataset_dir, 'cam_b')
-        # self.split_path = osp.join(self.dataset_dir, 'splits.json')
-
         required_files = [self.dataset_dir]
         self.check_before_run(required_files)
-
-        # self.prepare_split()
-        # splits = read_json(self.split_path)
-        # if split_id >= len(splits):
-        #     raise ValueError(
-        #         'split_id exceeds range, received {}, '
-        #         'but expected between 0 and {}'.format(
-        #             split_id,
-        #             len(splits) - 1
-        #         )
-        #     )
-        # split = splits[split_id]
-
-        # train = split['train']
-        # query = split['query'] # query and gallery share the same images
-        # gallery = split['gallery']
-
-        # train = [tuple(item) for item in train]
-        # query = [tuple(item) for item in query]
-        # gallery = [tuple(item) for item in gallery]
 
         train = self.process_dir_new(self.dataset_dir,'train')
         query = self.process_dir_new(self.dataset_dir,'query')
@@ -76,7 +52,7 @@ class VIPeR(ImageDataset):
         super().__init__(train, query, gallery, **kwargs)
 
     def process_dir_new(self, dataset_dir, split):
-        josn_path = osp.join(self.dataset_dir,'Qwen-all/Qwen2_viper.json')
+        josn_path = "./datasets/captions/viper.json"
         data = []
         type = split
         with open(josn_path, 'r', encoding='utf-8') as file:

@@ -43,17 +43,7 @@ class GRID(ImageDataset):
         self.root = root
         self.dataset_dir = osp.join(self.root, self.dataset_dir)
 
-        # self.probe_path = osp.join(
-        #     self.dataset_dir, 'probe'
-        # )
-        # self.gallery_path = osp.join(
-        #     self.dataset_dir, 'gallery'
-        # )
-        # self.split_mat_path = osp.join(
-        #     self.dataset_dir, 'features_and_partitions.mat'
-        # )
-        # self.split_path = osp.join(self.dataset_dir, 'splits.json')
-        self.split_path = osp.join(self.dataset_dir,'Qwen2_grid.json')
+        self.split_path = "./datasets/captions/grid.json"
         required_files = [
             self.dataset_dir
         ]
@@ -75,10 +65,6 @@ class GRID(ImageDataset):
         query = split['query']
         gallery = split['gallery']
 
-        # train = [tuple(item)+tuple('greid') for item in train]
-        # query = [tuple(item)+tuple('greid') for item in query]
-        # gallery = [tuple(item)+tuple('greid') for item in gallery]
-
         train = self.process_dir_new(self.dataset_dir,train)
         query = self.process_dir_new(self.dataset_dir,query)
         gallery = self.process_dir_new(self.dataset_dir,gallery)
@@ -87,9 +73,7 @@ class GRID(ImageDataset):
 
     def process_dir_new(self,dataset_dir ,jsonData):
         dataset = []
-        # 遍历JSON数据
         for item in jsonData:
-            # 返回captions属性和file_path属性
             captions = item.get('captions')
             file_path = item.get('file_path')
             img_path = dataset_dir + file_path

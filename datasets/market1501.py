@@ -70,14 +70,13 @@ class Market(ImageDataset):
 
 
     def process_dir(self, dir_path, is_train=True, mode=''):
-        json_path = osp.join(self.data_dir,'Qwen2_market.json')
+        json_path = "./datasets/captions/market1501.json"
         with open(json_path, 'r') as f:
             json_data = json.load(f)
         data = []
         pid_set = set()
         cam_set = set()
         type = dir_path.split('/')[-1]
-        # 1：收集所有pid和camid
         for item in json_data:
             if type in item.get('file_path', ''):
               pid = item['id']
@@ -94,7 +93,6 @@ class Market(ImageDataset):
             self.pid_dict = dict([(p, i) for i, p in enumerate(self.pids)])
             self.cam_dict = dict([(p, i) for i, p in enumerate(self.cams)])
         
-        # 2：处理每个JSON项
         for item in json_data:
             if type in item.get('file_path', ''):
               img_path = osp.join(self.data_dir, item['file_path'])
@@ -118,46 +116,6 @@ class Market(ImageDataset):
                   camid = int(camid)
               data.append((img_path, pid, camid, 'Market', captions))
         return data
-
-    # def process_dir(self, dir_path, is_train=True, mode=''):
-    #     img_paths = glob.glob(osp.join(dir_path, '*.jpg'))
-    #     pattern = re.compile(r'([-\d]+)_c(\d)')
-
-    #     data = []
-    #     pid_set = set()
-    #     cam_set = set()
-    #     for img_path in img_paths:
-    #         pid, camid = map(int, pattern.search(img_path).groups())
-    #         if pid == -1:
-    #             continue  # junk images are just ignored
-    #         pid_set.add(pid)
-    #         cam_set.add(camid)
-
-    #     self.pids = sorted(list(pid_set))
-    #     self.cams = sorted(list(cam_set))
-    #     if is_train:
-    #         self.pid_dict = dict([(p, i) for i, p in enumerate(self.pids)])
-    #         self.cam_dict = dict([(p, i) for i, p in enumerate(self.cams)])
-    #     for img_path in img_paths:
-    #         pid, camid = map(int, pattern.search(img_path).groups())
-    #         if pid == -1:
-    #             continue  # junk images are just ignored
-    #         assert 0 <= pid <= 1501  # pid == 0 means background
-    #         assert 1 <= camid <= 6
-    #         #camid -= 1  # index starts from 0
-    #         if mode == 'train':
-    #             pid = self.pid_dict[pid]
-    #             camid = self.cam_dict[camid]
-    #             pid = self.dataset_name + "_" + str(pid)
-    #             camid = self.dataset_name + "_" + str(camid)
-    #         else:
-    #             pid = self.pid_dict_test[pid]
-    #             camid = self.cam_dict_test[camid]
-    #             pid += 751
-    #             pid = int(pid)
-    #             camid = int(camid)
-    #         data.append((img_path, pid, camid,'Market'))
-    #     return data
 
     def build_dict(self, dir_path, is_train=True, mode=''):
         img_paths = glob.glob(osp.join(dir_path, '*.jpg'))

@@ -1,6 +1,5 @@
 import torch.nn.functional as F
 from .triplet_loss import TripletLoss
-from .apn_loss import APNLoss
 from .center_loss import CenterLoss
 from .contrastive_loss import SupConLoss
 from .softmax_loss import CrossEntropyLabelSmooth
@@ -9,7 +8,6 @@ from .softmax_loss import CrossEntropyLabelSmooth
 def make_loss(num_classes):
     triplet = TripletLoss()
     xent = CrossEntropyLabelSmooth(num_classes=num_classes)
-    apnloss = APNLoss()
 
     def loss_func(score, feat, target, i2tscore=None, image_feature=None, text_p=None, text_n=None, beta=0.2):
         if isinstance(score, list):
@@ -25,16 +23,11 @@ def make_loss(num_classes):
             TRI_LOSS = triplet(feat, target)[0]
         
         loss = 1.0 * TRI_LOSS + 1.0 * ID_LOSS
-        apn_loss_value = 0.0  # 默认值
         
         if i2tscore is not None:
             I2TLOSS = xent(i2tscore, target)
             loss = (1.0 - beta) * I2TLOSS + 1.0 * loss
             
-        if text_p is not None and text_n is not None:
-            apn_loss_value = apnloss(image_feature, text_p, text_n)
-            loss = beta * apn_loss_value + 1.0 * loss
-            
-        return loss, apn_loss_value  # 返回明确的变量
+        return loss
 
     return loss_func

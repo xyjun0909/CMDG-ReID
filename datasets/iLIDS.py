@@ -46,7 +46,7 @@ class iLIDS(ImageDataset):
 
         self.data_dir = osp.join(self.dataset_dir, 'images')
         # self.split_path = osp.join(self.dataset_dir, 'splits.json')
-        self.split_path = osp.join(self.dataset_dir, 'Qwen-all/Qwen2_ilds.json')
+        self.split_path = "./datasets/captions/ilds.json"
 
         required_files = [self.dataset_dir, self.data_dir]
         self.check_before_run(required_files)

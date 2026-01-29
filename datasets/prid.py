@@ -41,16 +41,8 @@ class PRID(ImageDataset):
         self.root = root
         self.dataset_dir = osp.join(self.root,self.dataset_dir)
 
-        # self.cam_a_dir = osp.join(self.dataset_dir, 'single_shot', 'cam_a')
-        # self.cam_b_dir = osp.join(self.dataset_dir, 'single_shot', 'cam_b')
-        # self.split_path = osp.join(self.dataset_dir, 'splits_single_shot.json')
-        self.split_path = osp.join(self.dataset_dir, 'Qwen-all/Qwen2_prid.json')
+        self.split_path = "./datasets/captions/prid.json"
         required_files = [self.dataset_dir]
-        # required_files = [
-        #     self.dataset_dir,
-        #     self.cam_a_dir,
-        #     self.cam_b_dir
-        # ]
         self.check_before_run(required_files)
 
         self.prepare_split()
@@ -58,7 +50,6 @@ class PRID(ImageDataset):
         if split_id >= len(splits):
             raise ValueError('split_id exceeds range, received {}, but expected between 0 and {}'.format(split_id, len(splits)-1))
         split = splits[split_id]
-        # train, query, gallery = self.process_split(split)
 
         train = split['train']
         query = split['query']

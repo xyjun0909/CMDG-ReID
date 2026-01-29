@@ -1,56 +1,83 @@
 <div align="center">
-<h1>Learning Across Identity Islands: Cross-Modal Domain Generalization Person ReID</h1>
-<a href="https://huggingface.co/papers/2510.18632"><img src='https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Paper-orange'></a>
+<h1>🏝️ Learning Across Identity Islands 🏝️ : Cross-Modal Domain Generalization Person ReID</h1>
+<a href="https://huggingface.co/collections/YijunX0909/papers"><img src='https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Paper-orange'></a>
 
 **University of Electronic Science and Technology of China**; **Korea Advanced Institute of Science and Technology**
 
 Hao Ni, Yijun Xue, Lianli Gao, Sunghoon Im, Heng Tao Shen, Jingkuan Song
-
 </div>
 
-## Overview
-<img src="assets/teaser.png" alt="drawing" width="500"/>
+## 📌 Overview
+<div align="center">
+<img src="assets/teaser.png" alt="drawing" width="1000"/>
+</div>
 
-## Abstract
+## 📖 Abstract
 
-Domain generalizable person re-identification (DG ReID) aims to learn representations from multiple source domains that generalize to unseen target domains. Most existing ReID methods learn discriminative representations under ID-level supervision, encouraging samples of the same identity to be close while pushing samples of different identities apart. However, such hard supervision implicitly relies on cross-domain identity samples to learn domain-invariant representations, a condition that is violated in DG ReID where entities are isolated across domains. More importantly, it provides little guidance for learning general semantic information. In this paper, we move beyond the question of “same or not” and instead model “how similar” different samples are. By explicitly modeling sample-level similarity, the proposed approach enables the model to capture appearance cues that are more transferable across domains. Specifically, we propose a cross-modal domain generalization framework (CMDG) that integrates both visual and textual cues. CMDG contains two stages: (1) Intra-ID Cross-Modal Regularization, which aligns image and text features to provide a shared semantic foundation; and (2) Inter-ID Domain Bridging, which discovers cross-identity similarity by comparing visual local cues and further strengthens these relations using fine-grained textual descriptions to obtain domain-invariant appearance cues. Experiments on two DG ReID benchmarks—covering both small-scale and large-scale datasets—show that CMDG establishes a new state of the art, outperforming existing methods by an average margin of 6.5% in Rank-1 accuracy. Additional analyses highlight the effectiveness of modeling cross-identity semantics and leveraging textual cues for improving domain generalizability
+Domain generalizable person re-identification (DG ReID) aims to learn representations from multiple source domains that generalize to unseen target domains. Most existing ReID methods learn discriminative representations under ID-level supervision, encouraging samples of the same identity to be close while pushing samples of different identities apart. However, such hard supervision implicitly relies on cross-domain identity samples to learn domain-invariant representations, a condition that is violated in DG ReID where entities are isolated across domains. More importantly, it provides little guidance for learning general semantic information. In this paper, we move beyond the question of “same or not” and instead model “how similar” different samples are. By explicitly modeling sample-level similarity, the proposed approach enables the model to capture appearance cues that are more transferable across domains. Specifically, we propose a cross-modal domain generalization framework (CMDG) that integrates both visual and textual cues. CMDG contains two stages: (1) Intra-ID Cross-Modal Regularization, which aligns image and text features to provide a shared semantic foundation; and (2) Inter-ID Domain Bridging, which discovers cross-identity similarity by comparing visual local cues and further strengthens these relations using fine-grained textual descriptions to obtain domain-invariant appearance cues. **Experiments on two DG ReID benchmarks—covering both small-scale and large-scale datasets—show that CMDG establishes a new state of the art, outperforming existing methods by an average margin of 6.5% in Rank-1 accuracy.** Additional analyses highlight the effectiveness of modeling cross-identity semantics and leveraging textual cues for improving domain generalizability
 
-## Framework
-<img src="assets/fra.png" alt="drawing" width="500"/>
+## 🛠️ Framework
+<div align="center">
+<img src="assets/fra.png" alt="drawing" width="1000"/>
+</div>
 
-## Changelog
+## 📅 Changelog
 
 * **[2026-01-23]** Code and configuration files are released.
 * **[2026-01-23]** Generated textual descriptions (by Qwen2.5-VL) are available for download.
 
-## Env Setup
+## 🚀 Env Setup
 
-### 1. Clone this repository
+### 1. Installation
 ```bash
-git clone https://github.com/xyjun0909/CMDG-ReID.git
+# Clone the repository
+git clone https://github.com/your_username/CMDG-ReID.git
 cd CMDG-ReID
-```
 
-### 2.Install dependencies
+# Create a conda environment
+conda create -n reid python=3.10
+conda activate reid
 
-```bash
-conda create -n CMDG-ReID python=3.10 -y && conda activate CMDG-ReID
+# Install dependencies
 pip install -r requirements.txt
 ```
 
-### 3.Data Preparation
-* Image Datasets: Please download the standard ReID datasets (Market1501, MSMT17, CUHK03, CUHK-SYSU, CUHK02, PRID, GRID, VIPER, iLIDs).
-* Textual Descriptions: We utilize Qwen2.5-VL-7B to generate fine-grained global and local captions for all identities.
+### 2.Data Preparation
+* Image Datasets: Download the standard ReID benchmarks including Market1501, MSMT17, CUHK03, CUHK-SYSU, and other small-scale datasets (CUHK02, PRID, GRID, VIPeR, iLIDs).
+* Textual Descriptions: We provide fine-grained global and local captions for all identities, generated by Qwen2.5-VL-7B-Instruct. The caption files are organized in ./datasets/captions.
 
-### 4.run
-use run.sh to train your model with different protocols.
+### 3.run
+You can run the project by modifying the corresponding configuration (cfg) files and using the run.py script.
 
-## Acknowledgements
-The repo also benifits form [PAT](https://github.com/liyuke65535/Part-Aware-Transformer),[CLIP-ReID](https://github.com/Syliz517/CLIP-ReID),[CLIP-FGDI](https://github.com/Qi5Lei/CLIP-FGDI).
+## 📊 Evaluation Protocols
+To ensure a fair and comprehensive comparison with existing methods, we strictly follow the Domain Generalization Re-ID (DG-ReID) evaluation protocols widely adopted in recent works.
+
+* **M**: Market1501
+* **MS**: MSMT17
+* **C2**: CUHK02
+* **C3**: CUHK03
+* **CS**: CUHK-SYSU
+
+### Protocol Details
+
+* **Protocol-1 (Small-scale Generalization):** Multi-source training → Small-scale unseen domains testing. We train on the union of 4 datasets and test on 4 small-scale datasets.
+* **Protocol-2 (Large-scale, Train Split):** Multi-source → Large-scale unseen domain. Adopt a leave-one-domain-out setting. Only the **training splits** of source domains are used.
+* **Protocol-3 (Large-scale, Full Set):** Multi-source → Large-scale unseen domain. Same as Protocol-2, but the **full sets (train+test)** of source domains are utilized for training to maximize data diversity.
+
+### Configuration Summary
+
+| Protocol | Source Domains (Training) | Target Domains (Testing) | Note |
+| :---: | :--- | :--- | :--- |
+| **1** | Full-(M + C2 + C3 + CS) | PRID, GRID, VIPeR, iLIDs | Small-scale |
+| **2** | M + MS + CS<br>M + CS + C3<br>MS + CS + C3 | C3<br>MS<br>M | Leave-one-out<br>(Train split) |
+| **3** | Full-(M + MS + CS)<br>Full-(M + CS + C3)<br>Full-(MS + CS + C3) | C3<br>MS<br>M | Leave-one-out<br>(Full set) |
+
+## 🙏 Acknowledgements
+The repo also benifits from [PAT](https://github.com/liyuke65535/Part-Aware-Transformer),[CLIP-ReID](https://github.com/Syliz517/CLIP-ReID),[CLIP-FGDI](https://github.com/Qi5Lei/CLIP-FGDI).
 
 Thanks for their wonderful works.
 
-## Citation
+## ⚖️ Citation
 If you find this work useful for your research, please cite our paper:
 ```
 @article{CMDG2026,

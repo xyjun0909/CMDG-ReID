@@ -97,25 +97,8 @@ class MSMT17(ImageDataset):
             train += val
         super(MSMT17, self).__init__(train, query, gallery, **kwargs)
 
-    # def process_dir(self, dir_path, list_path, is_train=True):
-    #     with open(list_path, 'r') as txt:
-    #         lines = txt.readlines()
-
-    #     data = []
-
-    #     for img_idx, img_info in enumerate(lines):
-    #         img_path, pid = img_info.split(' ')
-    #         pid = int(pid)  # no need to relabel
-    #         camid = int(img_path.split('_')[2]) - 1  # index starts from 0
-    #         img_path = osp.join(dir_path, img_path)
-    #         if is_train:
-    #             pid = self.dataset_name + "_" + str(pid)
-    #             camid = self.dataset_name + "_" + str(camid)
-    #         data.append((img_path, pid, camid,'MSMT17'))
-    #     return data
-
     def process_dir(self,type, is_train=True):
-        json_path = osp.join(self.dataset_dir, 'Qwen2_msmt.json')
+        json_path = "./datasets/captions/msmt17.json"
         data = []
         with open(json_path, 'r') as f:
             json_data = json.load(f)

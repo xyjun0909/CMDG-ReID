@@ -14,7 +14,7 @@ import loss as Patchloss
 import torch.nn.functional as F
 import random
 
-from loss.loss.build_loss import build_loss
+from loss.loss_build.build_loss import build_loss
 from reidutils.meter import AverageMeter
 from reidutils.metrics import R1_mAP_eval
 from cfgs import *
@@ -117,7 +117,7 @@ def init_image_encoder(
             img, target = img.to(device), vid.to(device)
             with amp.autocast(enabled=True):
                 score, feat, _ = model(x=img, label=target)
-                loss,_ = criterion(score, feat, target, None)
+                loss = criterion(score, feat, target, None)
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
@@ -130,7 +130,6 @@ def init_image_encoder(
                 )
 
         epoch_losses.append(loss_meter.avg)
-        # if epoch % args_train.checkpoint_period == 0:
         torch.save(
             model.state_dict(),
             os.path.join(
@@ -139,7 +138,6 @@ def init_image_encoder(
             ),
         )
 
-    # 可视化损失曲线
     plt.figure(figsize=(10, 6))
     plt.plot(range(1, epochs + 1), epoch_losses, marker="o", label="Total Loss")
     plt.xlabel("Epoch"), plt.ylabel("Loss Value"), plt.title("Initialization Stage Loss Curve")
@@ -274,8 +272,8 @@ def train_stage2(
     loss_reid_meter = AverageMeter()  
     loss_partcontrastive_meter = AverageMeter()
     loss_distribution_align_meter = AverageMeter()
-    loss_cap_img_meter = AverageMeter()  # 文本-图像对齐损失
-    loss_pair_meter = AverageMeter()  # 图像-全局Prompt损失
+    loss_cap_img_meter = AverageMeter()  
+    loss_pair_meter = AverageMeter()  
 
     acc_meter = AverageMeter()
     scaler = amp.GradScaler()
@@ -297,20 +295,18 @@ def train_stage2(
     for i, (img, vid, _, _, domain, cid, captions, path) in enumerate(
         train_loader_stage2
     ):
-        # measure data loading time
         with torch.no_grad():
             img, target = img.to(device), vid.to(device)
             domain, cid = domain.to(device), cid.to(device)
-            img_feats = model(img, target, get_image=True)  # 局部+全局:4X[64,512]
+            img_feats = model(img, target, get_image=True)  
             cap_feats = model(
                 captions=captions, get_captions=True
-            )  # 局部＋全局:4X[64,512]
+            )  
             patch_centers.get_soft_label(
                 path, img_feats, cap_feats, domain,vid=vid, camid=cid
             )
     print("initialization done")
 
-    # 预计算所有类别提示词特征
     print("prepare ID prompt")
     text_feats = []
     model.eval()
@@ -318,11 +314,10 @@ def train_stage2(
         for i in range(i_ter):
             l_list = torch.arange(i * batch, min((i + 1) * batch, num_classes)).to(device)
             text_feat, _ = model(label=l_list, get_text=True)
-            text_feats.append(text_feat)  # 保持在GPU上
-    prompt_feats = torch.cat(text_feats, 0).to(device)  # 合并并保留在GPU
+            text_feats.append(text_feat)  
+    prompt_feats = torch.cat(text_feats, 0).to(device)  
     print("prepare done")
 
-    # 微调图像编码器
     for epoch in range(1, epochs + 1):
         model.train()
         loss_total_meter.reset()
@@ -345,30 +340,27 @@ def train_stage2(
             with torch.no_grad():
                 text_p, _ = model(
                     label=target, get_text=True, domain=domain, getdomain=False
-                )  # 领域无关Prompt
+                )  
             model.train()
             with amp.autocast(enabled=True):
-                # 图像特征与分类分数
                 score, feat, global_feat = model(
                     x=img, label=target
-                )  # score = [cls_score,cls_score_proj]
+                )  
                 img_feats = model(
                     img, target, get_image=True
-                )  # 局部+全局特征 4X[64,512]
+                ) 
                 cap_feats = model(
                     captions=captions, get_captions=True
-                )  # 文本特征 4X[64,512]
-                # 拆分图像特征
-                global_img_feat = img_feats[3]  # 全局图像特征：第4个元素 [64,512]
+                )  
+                global_img_feat = img_feats[3]  
                 local_img_feats = torch.stack(
                     img_feats[:3], dim=0
-                )  # 局部图像特征：前3个元素堆叠为 [3,64,512]
+                )  
 
-                # 拆分文本特征
-                global_text_feat = cap_feats[3]  # 全局文本特征：第4个元素 [64,512]
+                global_text_feat = cap_feats[3]  
                 local_text_feats = torch.stack(
                     cap_feats[:3], dim=0
-                )  # 局部文本特征：前3个元素堆叠为 [3,64,512]
+                )  
 
                 global_img_feat = F.normalize(global_img_feat, dim=1)
                 global_text_feat = F.normalize(global_text_feat, dim=1)
@@ -403,21 +395,16 @@ def train_stage2(
                     soft_lambda=0.5,
                 )
 
-                # text - img
                 loss_cap_img = 0.0
                 for p in range(4):
-                    # 特征归一化（CLIP标准操作，确保余弦相似度有效）
                     norm_img_feat = F.normalize(img_feats[p].float(), p=2, dim=1)
                     norm_cap_feat = F.normalize(cap_feats[p].float(), p=2, dim=1)
-                    # 计算当前局部/全局特征的CLIP对比损失
                     loss_cap_img += clip_contrastive_loss(norm_img_feat, norm_cap_feat)
-                loss_cap_img /= 4  # 平均4个部分的损失
+                loss_cap_img /= 4  
 
-                # 当前img与全部prompt
                 logits = global_feat @ prompt_feats.t()
                 loss_pair = F.cross_entropy(logits, target)
 
-                #fix2
                 total_loss = (
                     2.5 * reid_loss +
                     1.5 * loss_cap_img +
@@ -426,14 +413,10 @@ def train_stage2(
                     1.0 * distribution_align_loss # 1.5 -> 1.0
                 )
                 
-                # 总损失 = 图像-文本对齐损失 + pair-ID提示词对齐损失 + ReID损失（tri+id） + Patch中心对齐损失（text-guided） +  全局分布对齐损失
-
-            # 反向传播
             scaler.scale(total_loss).backward()
             scaler.step(optimizer_image)
             scaler.update()
 
-            # 日志与评估
             acc = ((score[0] + score[1]).max(1)[1] == target).float().mean()
             batch_size = img.shape[0]
             loss_total_meter.update(total_loss.item(), batch_size)
@@ -503,15 +486,12 @@ def test(testloaders, model, logger_test):
 
 
 def clip_contrastive_loss(image_features, text_features, temperature=0.1):
-    # 计算图像-文本相似度矩阵
     logits_per_image = torch.matmul(image_features, text_features.t()) / temperature
     logits_per_text = logits_per_image.t()
 
-    # 创建标签（对角线为1，表示匹配对）
     batch_size = image_features.shape[0]
     labels = torch.arange(batch_size).to(image_features.device)
 
-    # 计算双向交叉熵损失
     loss_i = F.cross_entropy(logits_per_image, labels)
     loss_t = F.cross_entropy(logits_per_text, labels)
 
@@ -519,29 +499,25 @@ def clip_contrastive_loss(image_features, text_features, temperature=0.1):
 
 
 if __name__ == "__main__":
-    seed = 1234 # 42、123、456、1234、2025
+    seed = 1234 
     set_seed(seed)
     parser, parser_test = argparse.ArgumentParser(
         description="train"
     ), argparse.ArgumentParser(description="test")
-    # todo
-    # parsertrain, parsertest, logname =  protocol_1(parser, parser_test)
 
-    parsertrain, parsertest, logname = protocol_2_MS(parser, parser_test)
+    # todo
+    parsertrain, parsertest, logname =  protocol_1(parser, parser_test)
+
+    # parsertrain, parsertest, logname = protocol_2_MS(parser, parser_test)
     # parsertrain, parsertest, logname = protocol_2_C3(parser, parser_test)
     # parsertrain, parsertest, logname = protocol_2_M(parser, parser_test)
   
     # parsertrain, parsertest, logname = protocol_3_MS(parser, parser_test)
     # parsertrain, parsertest, logname = protocol_3_C3(parser, parser_test)
     # parsertrain, parsertest, logname = protocol_3_M(parser, parser_test)
+
     args_train, args_test = parsertrain.parse_args(), parsertest.parse_args()
 
-    # # 日志设置
-    # log_path = os.path.join(
-    #     args_train.log_path,
-    #     f"{logname}_{args_train.backbone}_epoch={args_train.prior_img_epoch}_start",
-    # )
-    # 构建日志路径，使用命令行参数
     log_suffix = args_train.log_suffix if args_train.log_suffix else f"test"
     log_path = os.path.join(
         args_train.log_path,
@@ -568,7 +544,7 @@ if __name__ == "__main__":
     pc_criterion = Patchloss.Pedal(
         scale=0.02,  
         k=10,
-        kernel_bandwidth=0.65 # 适配512维特征，提高MMD对分布差异的敏感度
+        kernel_bandwidth=0.65 
     ).cuda()
     
     num_classes = len(train_loader_stage2.dataset.pids)

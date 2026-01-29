@@ -30,8 +30,9 @@ class cuhk03(ImageDataset):
     def __init__(self, root="", split_id=0, cuhk03_labeled=True, cuhk03_classic_split=False, **kwargs):
         self.root = root
         self.dataset_dir = osp.join(self.root, self.dataset_dir)
+        json_path = "./datasets/captions/cuhk03.json"
 
-        if osp.exists(osp.join(self.dataset_dir,'Qwen2_cuhk03.json')):
+        if osp.exists(json_path):
             no_captions = False
         if no_captions:
             self.data_dir = osp.join(self.dataset_dir, 'cuhk03_release')
@@ -82,7 +83,7 @@ class cuhk03(ImageDataset):
         super(cuhk03, self).__init__(train, query, gallery, **kwargs)
 
     def process_dataset(self, type):
-        json_path = osp.join(self.dataset_dir,'Qwen2_cuhk03.json')
+        json_path = "./datasets/captions/cuhk03.json"
         data = []
         pid_set = set()
         cam_set = set()
@@ -93,7 +94,7 @@ class cuhk03(ImageDataset):
               if type in item.get('split', ''): 
                   captions = item.get('captions')
                   file_path = item.get('file_path')
-                  file_path = file_path.lstrip('/')  # 去掉'/'
+                  file_path = file_path.lstrip('/')  
                   img_path = osp.join(self.dataset_dir, file_path)
                   camid = self.calculate_camid(file_path) # index from 0
                   pid = item.get('id') # no need to relabel
@@ -105,7 +106,7 @@ class cuhk03(ImageDataset):
               for item in json_data:
                   if type in item.get('split', ''): 
                       file_path = item.get('file_path')
-                      file_path = file_path.lstrip('/')  # 去掉'/'
+                      file_path = file_path.lstrip('/') 
                       img_path = osp.join(self.dataset_dir, file_path)
                       camid = self.calculate_camid(file_path) # index from 0
                       pid = item.get('id') # no need to relabel
@@ -119,7 +120,7 @@ class cuhk03(ImageDataset):
               if type in item.get('split', ''): 
                   captions = item.get('captions')
                   file_path = item.get('file_path')
-                  file_path = file_path.lstrip('/')  # 去掉'/'
+                  file_path = file_path.lstrip('/')  
                   img_path = osp.join(self.dataset_dir, file_path)
                   camid = self.calculate_camid(file_path) # index from 0
                   pid = item.get('id') # no need to relabel
@@ -132,8 +133,8 @@ class cuhk03(ImageDataset):
     def calculate_camid(self,file_path):
         file_name = file_path.split('/')[-1] 
         parts = file_name.split('_')
-        x = int(parts[0])  # 第二个 '/' 后的第一个数字
-        y = int(parts[2])  # 第三个 '_' 后的第一个数字
+        x = int(parts[0])  
+        y = int(parts[2])  
         camid = 2 * x + y - 3
         return camid
 
